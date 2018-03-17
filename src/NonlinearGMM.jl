@@ -20,20 +20,10 @@ module NonlinearGMM
         f(x) = J(x, gfun, xdata, ydata, W, N, Nm, Nb)
         if autodiff == :forward
             obj = OnceDifferentiable(f, guess; autodiff = :forward)
-<<<<<<< HEAD
             res = optimize(obj, guess, method = LBFGS(), show_trace = true, iterations = maxit, show_every = 10)
 
         else
             println("differentiation method not implemented")
-=======
-            println("J obj prepared. Start Minimization")
-            res = optimize(obj, guess, method = LBFGS(), show_trace = true, iterations = maxit, show_every = 10)
-
-        elseif autodiff == :false
-            println("J obj prepared. Start Minimization")
-            # need to add gradient fun
-            res = optimize(f, guess, method = LBFGS(), show_trace=true, iterations = maxit, show_every = 10)
->>>>>>> daf658879a4c75632dd2b7540d479b523e008619
         end
         return res
     end
