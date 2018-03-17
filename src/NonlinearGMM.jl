@@ -1,16 +1,19 @@
 module NonlinearGMM
     using Optim
     using ForwardDiff
+
+    export nlgmm
+
     """
     Nonlinear GMM
     """
-    function nlgmm(gfun, xdata, ydata, W, N, Nm, Nb; guess = ones(Nb), autodiff = :forward)
+    function nlgmm(gfun, xdata, ydata, W, N, Nm, Nb; guess = ones(Nb), autodiff = :forward, maxit = 1000)
         # parameter estimation
-        opt = nlgmm_opt(gfun, xdata, ydata, W, N, Nm, Nb; guess = guess, autodiff = autodiff)
+        opt = nlgmm_opt(gfun, xdata, ydata, W, N, Nm, Nb; guess = guess, autodiff = autodiff, maxit = maxit)
         bgmm = opt.minimizer
         # calculcate variance covariance matrix
-        V = nlgmm_covar(bgmm, gfun, xdata, zdata, ydata, W, N, Nm, Nb)
-        return bgmm, V
+        V, Q, Ω = nlgmm_covar(bgmm, gfun, xdata,  ydata, W, N, Nm, Nb)
+        return bgmm, V, Q, Ω
     end
 
     """
@@ -20,20 +23,10 @@ module NonlinearGMM
         f(x) = J(x, gfun, xdata, ydata, W, N, Nm, Nb)
         if autodiff == :forward
             obj = OnceDifferentiable(f, guess; autodiff = :forward)
-<<<<<<< HEAD
             res = optimize(obj, guess, method = LBFGS(), show_trace = true, iterations = maxit, show_every = 10)
 
         else
             println("differentiation method not implemented")
-=======
-            println("J obj prepared. Start Minimization")
-            res = optimize(obj, guess, method = LBFGS(), show_trace = true, iterations = maxit, show_every = 10)
-
-        elseif autodiff == :false
-            println("J obj prepared. Start Minimization")
-            # need to add gradient fun
-            res = optimize(f, guess, method = LBFGS(), show_trace=true, iterations = maxit, show_every = 10)
->>>>>>> daf658879a4c75632dd2b7540d479b523e008619
         end
         return res
     end
@@ -68,7 +61,7 @@ module NonlinearGMM
             Q += 1/N * ForwardDiff.jacobian(par -> gfun(par, xdata[i,:], ydata[i,:]), bhat)' # check transpose
         end
         # check division by N
-        return inv(Q'*W*Q)*(Q'*W*Ω*W*Q)*inv(Q'*W*Q)
+        return inv(Q'*W*Q)*(Q'*W*Ω*W*Q)*inv(Q'*W*Q), Q, Ω
     end
 
 end # module

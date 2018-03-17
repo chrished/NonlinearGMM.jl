@@ -4,10 +4,10 @@ using Base.Test
 
 # Seemingly Unrelated Regressions
 # setup multiple equations with same covariates
-const N = 500
+const N = 1000
 const nx = 2
 const neq = 2
-βh = rand((nx+1, neq))*10
+βh = rand((nx+1, neq))
 X = hcat(ones(N), rand((N, nx)))
 y = X*βh .+ randn((N, neq))
 Xbar = kron(eye(neq), X)
@@ -66,11 +66,21 @@ W = eye(length(btest))
 @test isapprox(0.,NonlinearGMM.J(btest, gsur, X, y, W, N, Nm, Nb), atol=sqrt(eps()))
 
 # now estimate gmm
-bguess =vcat(zeros(bsur[:]), eye(neq)[:])
+bhat, V, Q, Ω = nlgmm(gsur, X, y, W, N, Nm, Nb; guess = vcat(zeros((nx+1)*neq), eye(neq)[:]), autodiff = :forward, maxit = 5000)
 
-res = NonlinearGMM.nlgmm_opt(gsur, X, y, W, N, Nm, Nb; guess = bguess, autodiff = :forward, maxit = 5000)
+bgmm = bhat[1:(nx+1)*neq]
+Σgmm = reshape(bhat[(nx+1)*neq+1:end], neq, neq)
 
-bgmm = res.minimizer[1:(nx+1)*neq]
-Σgmm = reshape(res.minimizer[(nx+1)*neq+1:end], neq, neq)
 # add Variance Covariance matrix GMM
-V = NonlinearGMM.nlgmm_covar(res.minimizer, gsur, X, y, W, N, Nm, Nb)
+# V is wrong need to divide by N! Where is it missing in my code?
+bhatm1 = copy(bhat)
+W[:,:] = inv(Ω)
+for it = 1:10
+    bhat, V, Q, Ω = nlgmm(gsur, X, y, W, N, Nm, Nb; guess = bhatm1, autodiff = :forward)
+    if isapprox(bhat, bhatm1, atol=sqrt(eps()), rtol = sqrt(eps()))
+        println("Converged iterated GMM")
+        break
+    end
+    bhatm1[:] = bhat
+    W[:,:] = inv(Ω)
+end
