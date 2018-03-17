@@ -84,3 +84,5 @@ for it = 1:10
     bhatm1[:] = bhat
     W[:,:] = inv(Ω)
 end
+bgmm_it = bhat[1:(nx+1)*neq]
+@test isapprox(bgmm_it, bols_stack, atol=sqrt(eps()))
