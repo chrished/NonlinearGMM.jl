@@ -1,5 +1,7 @@
+using NonlinearGMM
+using Base.Test
 # test nonlinear gmm with OLS
-N = 500
+N = 1000
 nx = 3
 X = hcat(ones(N), rand((N, nx)))
 β = rand(nx+1)
@@ -27,3 +29,5 @@ Nb = nx+1
 opt = NonlinearGMM.nlgmm_opt(g, X, y, W, N, Nm, Nb; guess = ones(Nb), autodiff = :forward)
 
 @test isapprox(opt.minimizer, bols, atol = sqrt(eps()))
+
+bhat, V, Q, Ω = nlgmm(g, X, y, W, N, Nm, Nb; guess = zeros(bols), autodiff = :forward, maxit = 5000)

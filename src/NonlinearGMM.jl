@@ -58,10 +58,9 @@ module NonlinearGMM
         # contstruct Q
         Q = zeros(eltype(bhat),(Nm, Nb))
         for i = 1:N
-            Q += 1/N * ForwardDiff.jacobian(par -> gfun(par, xdata[i,:], ydata[i,:]), bhat)' # check transpose
+            Q += 1/N * ForwardDiff.jacobian(par -> gfun(par, xdata[i,:], ydata[i,:]), bhat)' # check transpose, test with more moments than parameters
         end
-        # check division by N
-        return inv(Q'*W*Q)*(Q'*W*Ω*W*Q)*inv(Q'*W*Q), Q, Ω
+        return 1/N*inv(Q'*W*Q)*(Q'*W*Ω*W*Q)*inv(Q'*W*Q), Q, Ω
     end
 
 end # module
