@@ -4,9 +4,10 @@ using Base.Test
 
 # Seemingly Unrelated Regressions
 # setup multiple equations with same covariates
-const N = 1000
-const nx = 2
-const neq = 2
+N = 1000
+nx = 2
+neq = 2
+
 βh = rand((nx+1, neq))
 X = hcat(ones(N), rand((N, nx)))
 y = X*βh .+ randn((N, neq))
